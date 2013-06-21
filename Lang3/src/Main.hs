@@ -6,7 +6,23 @@ data Term = TTrue | TFalse | Zero
           | If Term Term Term
             deriving (Eq, Show)
 
-eval :: Term -> Term
+data EvalTerm = ETrue | EFalse | EZero
+              | ESucc (Do EvalTerm) | EPred (Do EvalTerm) | EIsZero (Do EvalTerm)
+              | EIf (Do EvalTerm) (Do EvalTerm) (Do EvalTerm)
+                deriving (Eq, Show)
+
+data Do t = Done t
+          | NotYet t
+
+evaluate :: Term -> Term
+evaluate = undefined
+
+eval :: Do EvalTerm -> Do EvalTerm
+eval (NotYet (EIsZero t)) =
+    case eval t of
+        (
+
+{-
 eval (IsZero Zero)       = trace "IsZero Zero" $ TTrue
 eval (IsZero TTrue)      = trace "IsZero TTrue" $ TFalse
 eval (IsZero TFalse)     = trace "IsZero TFalse" $ TFalse
@@ -22,7 +38,7 @@ eval (Pred (Succ t))     = trace "Pred (Succ t)" $ eval t
 eval (Pred t@(If _ _ _)) = trace "Succ (If c t f)" $ eval $ Pred $ eval t
 eval (Pred t)            = trace "Pred t" $ Pred $ eval t
 eval t                   = trace "t" $ t
-
+-}
 pretty :: Term -> String
 pretty TTrue  = "True"
 pretty TFalse = "False"
@@ -35,10 +51,10 @@ num Zero     = 0
 num _        = error "not evaluated syntax tree"
 
 main = do
-    putStrLn $ pretty $ eval $ Succ $ Zero
-    putStrLn $ pretty $ eval $
+    putStrLn $ pretty $ evaluate $ Succ $ Zero
+    putStrLn $ pretty $ evaluate $
             If (IsZero $ Pred $ Succ $ Zero)
                (Succ $ Succ $ Succ $ Zero)
                (Pred $ Zero)
-    putStrLn $ pretty $ eval $
+    putStrLn $ pretty $ evaluate $
             IsZero (Pred (If TTrue (Succ Zero) Zero))
