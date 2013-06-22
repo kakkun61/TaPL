@@ -6,55 +6,47 @@ data Term = TTrue | TFalse | Zero
           | If Term Term Term
             deriving (Eq, Show)
 
-data EvalTerm = ETrue | EFalse | EZero
-              | ESucc (Do EvalTerm) | EPred (Do EvalTerm) | EIsZero (Do EvalTerm)
-              | EIf (Do EvalTerm) (Do EvalTerm) (Do EvalTerm)
-                deriving (Eq, Show)
+data EvaledTerm = ETrue | EFalse | EZero
+                | ESucc EvaledTerm | EPred EvaledTerm
+                  deriving (Eq, Show)
 
-data Do t = Done t
-          | NotYet t
-
-evaluate :: Term -> Term
-evaluate = undefined
-
-eval :: Do EvalTerm -> Do EvalTerm
-eval (NotYet (EIsZero t)) =
+eval :: Term -> EvaledTerm
+eval TTrue  = ETrue
+eval TFalse = EFalse
+eval Zero   = EZero
+eval (Succ t) =
     case eval t of
-        (
+        EPred et -> et
+        et       -> ESucc et
+eval (Pred t) =
+    case eval t of
+        ESucc et -> et
+        et       -> EPred et
+eval (IsZero t) =
+    case eval t of
+        EZero -> ETrue
+        _     -> EFalse
+eval (If c t f) =
+    case eval c of
+        ETrue  -> eval t
+        EFalse -> eval f
 
-{-
-eval (IsZero Zero)       = trace "IsZero Zero" $ TTrue
-eval (IsZero TTrue)      = trace "IsZero TTrue" $ TFalse
-eval (IsZero TFalse)     = trace "IsZero TFalse" $ TFalse
-eval (IsZero t)          = trace "IsZero t" $ isZero $ eval t
-    where
-        isZero Zero = TTrue
-        isZero _    = TFalse
-eval (If c t f)          = trace "If t t t" $ if eval c == TTrue then eval t else eval f
-eval (Succ (Pred t))     = trace "Succ (Pred t)" $ eval t
-eval (Succ t@(If _ _ _)) = trace "Succ (If c t f)" $ eval $ Succ $ eval t
-eval (Succ t)            = trace "Succ t" $ Succ $ eval t
-eval (Pred (Succ t))     = trace "Pred (Succ t)" $ eval t
-eval (Pred t@(If _ _ _)) = trace "Succ (If c t f)" $ eval $ Pred $ eval t
-eval (Pred t)            = trace "Pred t" $ Pred $ eval t
-eval t                   = trace "t" $ t
--}
-pretty :: Term -> String
-pretty TTrue  = "True"
-pretty TFalse = "False"
+pretty :: EvaledTerm -> String
+pretty ETrue  = "True"
+pretty EFalse = "False"
 pretty t      = show $ num t
 
-num :: Term -> Integer
-num (Succ t) = (num t) + 1
-num (Pred t) = (num t) - 1
-num Zero     = 0
+num :: EvaledTerm -> Integer
+num (ESucc t) = (num t) + 1
+num (EPred t) = (num t) - 1
+num EZero     = 0
 num _        = error "not evaluated syntax tree"
 
 main = do
-    putStrLn $ pretty $ evaluate $ Succ $ Zero
-    putStrLn $ pretty $ evaluate $
+    putStrLn $ pretty $ eval $ Succ $ Zero
+    putStrLn $ pretty $ eval $
             If (IsZero $ Pred $ Succ $ Zero)
                (Succ $ Succ $ Succ $ Zero)
                (Pred $ Zero)
-    putStrLn $ pretty $ evaluate $
+    putStrLn $ pretty $ eval $
             IsZero (Pred (If TTrue (Succ Zero) Zero))
