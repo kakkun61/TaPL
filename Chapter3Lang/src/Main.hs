@@ -1,6 +1,3 @@
---import Debug.Trace (trace)
-trace _ = id
-
 data Term = TTrue | TFalse | Zero
           | Succ Term | Pred Term | IsZero Term
           | If Term Term Term
