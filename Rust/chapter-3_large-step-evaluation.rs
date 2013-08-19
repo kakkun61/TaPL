@@ -5,15 +5,15 @@ enum Term {
     Succ(@Term), Pred(@Term), IsZero(@Term),
     If(@Term, @Term, @Term)
 }
- 
+
 enum Value {
     VTrue, VFalse, NV(@NumberValue)
 }
- 
+
 enum NumberValue {
     VZero, VSucc(@NumberValue)
 }
- 
+
 fn eval(t: &Term) -> @Value {
     match *t {
         True  => @VTrue,
@@ -44,7 +44,7 @@ fn eval(t: &Term) -> @Value {
             }
     }
 }
- 
+
 fn pretty(v: &Value) -> ~str {
     match *v {
         VTrue  => ~"True",
@@ -52,14 +52,14 @@ fn pretty(v: &Value) -> ~str {
         NV(nv) => fmt!("%d", num(nv)).clone()
     }
 }
- 
+
 fn num(nv: &NumberValue) -> int {
     match *nv {
         VSucc(t) => num(t) + 1,
         VZero    => 0
     }
 }
- 
+
 fn main() {
     println(fmt!("%s", pretty(eval(@True))));
     println(fmt!("%s", pretty(eval(@Succ(@Zero)))));
