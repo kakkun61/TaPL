@@ -12,44 +12,39 @@ fn value(t: &Term) -> bool {
         False -> true,
         _     -> number(t)
     }
-}
 
-fn number(t: &Term) -> bool {
-    match *t {
-        Zero     -> true,
-        Succ(t2) -> number(t2),
-        _        -> false
+    fn number(t: &Term) -> bool {
+        match *t {
+            Zero     -> true,
+            Succ(t2) -> number(t2),
+            _        -> false
+        }
     }
 }
 
-fn eval(t: &Term) -> @Value {
-    match *t {
-        True  => @VTrue,
-        False => @VFalse,
-        Zero  => @NV(@VZero),
-        If(c, t, f) =>
-            match eval(c) {
-                @VTrue  => eval(t),
-                @VFalse => eval(f),
-                _       => fail!("\"if\"'s conditon is evaluated in non boolean.")
-            },
-        Succ(t) =>
-            match eval(t) {
-                @NV(nv) => @NV(@VSucc(nv)),
-                _       => fail!("\"succ n\"'s \"n\" is evaluated in non number.")
-            },
-        Pred(t) =>
-            match eval(t) {
-                @NV(@VZero)     => @NV(@VZero),
-                @NV(@VSucc(nv)) => @NV(nv),
-                _               => fail!("\"pred n\"'s \"n\" is evaluated in non number.")
-            },
-        IsZero(t) =>
-            match eval(t) {
-                @NV(@VZero)    => @VTrue,
-                @NV(@VSucc(_)) => @VFalse,
-                _              => fail!("\"iszero n\"'s \"n\" is evaluated in non number.")
-            }
+fn evaluate(t: &Term) -> @Term {
+    if value(t) {
+        t
+    } else {
+        evaluate(eval(t))
+    }
+
+    fn eval(t: &Term) -> @Term {
+        match *t {
+            If(@True,  t, _) => t,
+            If(@False, _, f) => f,
+            If(c,      t, f) => If(eval(c), t, f)
+            Succ(t) => Succ(eval(t)),
+            Pred(@VZero)     => @Zero,
+            Pred(@Succ(t)) => t,
+            Pred(t)        => Pred(eval(t),
+            IsZero(t) =>
+                match eval(t) {
+                    @NV(@VZero)    => @VTrue,
+                    @NV(@VSucc(_)) => @VFalse,
+                    _              => fail!("\"iszero n\"'s \"n\" is evaluated in non number.")
+                }
+        }
     }
 }
 
