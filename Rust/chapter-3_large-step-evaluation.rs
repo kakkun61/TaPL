@@ -49,7 +49,7 @@ fn pretty(v: &Value) -> ~str {
     match *v {
         VTrue  => ~"True",
         VFalse => ~"False",
-        NV(nv) => fmt!("%d", num(nv)).clone()
+        NV(nv) => fmt!("%d", num(nv))
     }
 }
 
