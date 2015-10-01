@@ -31,7 +31,7 @@ eval (Pred t) =
 -- B-IsZeroZero, B-IsZeroSucc
 eval (IsZero t) =
     case eval t of
-        NV VZero    -> VTrue
+        NV VZero     -> VTrue
         NV (VSucc _) -> VFalse
 
 pretty :: Value -> String
