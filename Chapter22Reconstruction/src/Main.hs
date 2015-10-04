@@ -12,7 +12,7 @@ data Term = Var VarName
           | Succ Term
           | Pred Term
           | If Term Term Term
-          | Lambda String Term
+          | Lambda VarName Term
           | Let VarName Term Term
           deriving (Eq, Show)
 
@@ -36,7 +36,7 @@ class Assignable a where
   assign :: Assign -> a -> a
 
 instance Assignable Type where
-  assign a (TypeVar n) = undefined
+  assign a (TypeVar x) = undefined
   assign _ Nat = Nat
   assign _ TBool = TBool
   assign a (Arrow t1 t2) = Arrow (assign a t1) (assign a t2)
@@ -46,7 +46,7 @@ instance Assignable Constraint where
   assign (Constraint t1 t2) = Constraint (assign a t1) (assign a t2)
 
 fv :: Type -> Set VarName
-fv (TypeVar v) = S.singleton v
+fv (TypeVar x) = S.singleton x
 fv Nat = S.empty
 fv TBool = S.empty
 fv (Arrow t1 t2) = S.union (ftv t1) (ftv t2)
@@ -64,9 +64,9 @@ unify c =
     in
       case (s, t) of
         (_, _) | s == t => unify c'
-        (TypeVar n, _) | not (S.member n (fv t)) => let a = Assign n t
+        (TypeVar x, _) | not (S.member x (fv t)) => let a = Assign x t
                                                     in unify (assign a c) >>= (a:)
-        (_, TypeVar n) | not (S.member n (fv s)) => let a = Assign n s
+        (_, TypeVar x) | not (S.member x (fv s)) => let a = Assign x s
                                                     in unify (assign a c) >>= (a:)
         ((Arrow s1 s2), (Arrow t1 r2)) => unify (S.insert (Constraint s1 t1)
                                                 (S.insert (Constraint s2 t2) c'))
