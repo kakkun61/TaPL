@@ -1,0 +1,14 @@
+name:                   tapl-recon
+version:                0.1.0
+author:                 Kazuki Okamoto <kazuki.okamoto@kakkun61.com>
+maintainer:             Kazuki Okamoto <kazuki.okamoto@kakkun61.com>
+license:                BSD3
+build-type:             Simple
+cabal-version:          >= 1.10
+
+executable tapl-recon
+  hs-source-dirs:       src
+  main-is:              Main.hs
+  build-depends:        base >= 4.0 && < 5
+  default-language:     Haskell2010
+  ghc-options:          -Wall
