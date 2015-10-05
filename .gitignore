@@ -4,6 +4,7 @@
 *.lkshw
 *.lkshs
 dist/
+.stack-work/
 
 ### JetBrains
 

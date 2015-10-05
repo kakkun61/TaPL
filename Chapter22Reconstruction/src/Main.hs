@@ -1,7 +1,9 @@
 module Main where
 
-import Data.Set (Set, (\\))
+import Data.Set (Set)
 import qualified Data.Set as S
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as M
 
 type VarName = Int
 
@@ -21,36 +23,41 @@ data Type = TypeVar VarName
           | TBool
           | Arrow Type Type
           | Scheme (Set VarName) Type
-          deriving (Eq, Show)
+          deriving (Eq, Ord, Show)
 
-type Context = Set (VarName, Type)
+newtype Context = Context (Map VarName Type)
+  deriving (Show)
 
 data Constraint = Constraint Type Type
-  deriving (Ord, Show)
+  deriving (Eq, Ord, Show)
 
--- 同時代入が存在するからそれに適応しないと
-data Assign = Assign VarName Type
+newtype Assign = Assign (Map VarName Type)
   deriving (Show)
 
 class Assignable a where
   assign :: Assign -> a -> a
 
 instance Assignable Type where
-  assign a (TypeVar x) = undefined
+  assign (Assign m) t@(TypeVar x) = case M.lookup x m of
+                                      Just t' -> t'
+                                      Nothing -> t
   assign _ Nat = Nat
   assign _ TBool = TBool
   assign a (Arrow t1 t2) = Arrow (assign a t1) (assign a t2)
   assign a (Scheme v t) = Scheme v (assign a t)
 
 instance Assignable Constraint where
-  assign (Constraint t1 t2) = Constraint (assign a t1) (assign a t2)
+  assign a (Constraint t1 t2) = Constraint (assign a t1) (assign a t2)
+
+instance (Assignable a, Ord a) => Assignable (Set a) where
+  assign a s = S.map (assign a) s
 
 fv :: Type -> Set VarName
 fv (TypeVar x) = S.singleton x
 fv Nat = S.empty
 fv TBool = S.empty
-fv (Arrow t1 t2) = S.union (ftv t1) (ftv t2)
-fv (Scheme vs t) = ftp t \\ vs
+fv (Arrow t1 t2) = S.union (fv t1) (fv t2)
+fv (Scheme vs t) = fv t S.\\ vs
 
 -- | 単一化関数
 -- | 代入のリストは先に適用するものが先頭である。
@@ -63,14 +70,14 @@ unify c =
         c' = S.deleteAt 0 c
     in
       case (s, t) of
-        (_, _) | s == t => unify c'
-        (TypeVar x, _) | not (S.member x (fv t)) => let a = Assign x t
-                                                    in unify (assign a c) >>= (a:)
-        (_, TypeVar x) | not (S.member x (fv s)) => let a = Assign x s
-                                                    in unify (assign a c) >>= (a:)
-        ((Arrow s1 s2), (Arrow t1 r2)) => unify (S.insert (Constraint s1 t1)
+        (_, _) | s == t -> unify c'
+        (TypeVar x, _) | not (S.member x (fv t)) -> let a = Assign $ M.singleton x t
+                                                    in unify (assign a c) >>= Right . (a:)
+        (_, TypeVar x) | not (S.member x (fv s)) -> let a = Assign $ M.singleton x s
+                                                    in unify (assign a c) >>= Right . (a:)
+        ((Arrow s1 s2), (Arrow t1 t2)) -> unify (S.insert (Constraint s1 t1)
                                                 (S.insert (Constraint s2 t2) c'))
-        _ => Left "invalid constraints"
+        _ -> Left "invalid constraints"
 
 newtype VarNameSeed = VarNameSeed VarName
 
@@ -82,3 +89,6 @@ genVarName (VarNameSeed s) = (s, varNameSeed (succ s))
 
 ctype :: Context -> Term -> VarNameSeed -> (Type, Set VarName, Set Constraint, VarNameSeed)
 ctype = undefined
+
+main :: IO ()
+main = undefined
