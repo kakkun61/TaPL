@@ -9,7 +9,8 @@ cabal-version:          >= 1.10
 executable tapl-recon
   hs-source-dirs:       src
   main-is:              Main.hs
-  build-depends:        base >= 4.0 && < 5
-                      , containers >= 0.5
+  build-depends:        base
+                      , containers
+                      , mtl
   default-language:     Haskell2010
   ghc-options:          -Wall

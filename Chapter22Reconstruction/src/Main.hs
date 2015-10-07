@@ -4,6 +4,7 @@ import Data.Set (Set)
 import qualified Data.Set as S
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
+import Control.Monad.State
 
 type VarName = Int
 
@@ -80,25 +81,28 @@ unify c =
         _ -> Left "invalid constraints"
 
 newtype VarNameSeed = VarNameSeed VarName
+  deriving (Show)
 
 varNameSeed :: VarName -> VarNameSeed
 varNameSeed = VarNameSeed
 
-genVarName :: VarNameSeed -> (VarName, VarNameSeed)
-genVarName (VarNameSeed s) = (s, varNameSeed (succ s))
+genVarName :: State VarNameSeed VarName
+genVarName = state genVarName'
+  where
+    genVarName' :: VarNameSeed -> (VarName, VarNameSeed)
+    genVarName' (VarNameSeed s) = (s, varNameSeed (succ s))
 
-ctype :: Context -> Term -> VarNameSeed -> (Type, Set VarName, Set Constraint, VarNameSeed)
-ctype (Context ctx) (Var x) vseed =
-  let
-    t = case M.lookup x ctx of
-          Just (Scheme xs s) -> let
-                                  go x' (m, vs) = let (y, vs') = genVerName vseed
-                                                  in (M.insert x' y m, vs')
-                                  (assign, vs) = S.foldr go (M.empty, vseed) xs
-                                in
-                                  undefined
-          Just (t) -> t
-          Nothing ->
+ctype :: Context -> Term -> State VarNameSeed (Type, Set VarName, Set Constraint)
+ctype (Context ctx) (Var x) = do
+  t <- case M.lookup x ctx of
+         Just (Scheme xs s) -> do
+                                 let
+                                   go x' = genVarName >>= \y -> (M.insert x' y m, vs')
+                                   -- (assign, vs) = S.foldr go (M.empty, vseed) xs
+                                 undefined
+         Just (t) -> t
+         Nothing -> undefined
+  undefined
 
 main :: IO ()
 main = undefined
