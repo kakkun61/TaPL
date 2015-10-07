@@ -88,7 +88,17 @@ genVarName :: VarNameSeed -> (VarName, VarNameSeed)
 genVarName (VarNameSeed s) = (s, varNameSeed (succ s))
 
 ctype :: Context -> Term -> VarNameSeed -> (Type, Set VarName, Set Constraint, VarNameSeed)
-ctype = undefined
+ctype (Context ctx) (Var x) vseed =
+  let
+    t = case M.lookup x ctx of
+          Just (Scheme xs s) -> let
+                                  go x' (m, vs) = let (y, vs') = genVerName vseed
+                                                  in (M.insert x' y m, vs')
+                                  (assign, vs) = S.foldr go (M.empty, vseed) xs
+                                in
+                                  undefined
+          Just (t) -> t
+          Nothing ->
 
 main :: IO ()
 main = undefined
