@@ -5,6 +5,9 @@ import qualified Data.Set as S
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Control.Monad.State
+import Data.Foldable
+import Control.Applicative
+import Control.Monad.Trans.Error
 
 type VarName = Int
 
@@ -92,15 +95,15 @@ genVarName = state genVarName'
     genVarName' :: VarNameSeed -> (VarName, VarNameSeed)
     genVarName' (VarNameSeed s) = (s, varNameSeed (succ s))
 
-ctype :: Context -> Term -> State VarNameSeed (Type, Set VarName, Set Constraint)
+ctype :: Context -> Term -> ErrorT String (State VarNameSeed) (Type, Set VarName, Set Constraint)
 ctype (Context ctx) (Var x) = do
   t <- case M.lookup x ctx of
          Just (Scheme xs s) -> do
-                                 let
-                                   go x' = genVarName >>= \y -> (M.insert x' y m, vs')
-                                   -- (assign, vs) = S.foldr go (M.empty, vseed) xs
+                                 a <- Assign <$> foldrM go M.empty xs
+                                      where
+                                        go x' m = genVarName >>= \y -> M.insert x' y m
                                  undefined
-         Just (t) -> t
+         Just t -> t
          Nothing -> undefined
   undefined
 

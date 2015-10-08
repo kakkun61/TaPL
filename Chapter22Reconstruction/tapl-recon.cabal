@@ -12,5 +12,6 @@ executable tapl-recon
   build-depends:        base
                       , containers
                       , mtl
+                      , transformers
   default-language:     Haskell2010
   ghc-options:          -Wall
