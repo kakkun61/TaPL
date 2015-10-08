@@ -102,7 +102,7 @@ ctype (Context ctx) (Var x) = do
                                  a <- Assign <$> foldrM go M.empty xs
                                       where
                                         go x' m = genVarName >>= \y -> M.insert x' y m
-                                 undefined
+                                 return $ assign a s
          Just t -> t
          Nothing -> undefined
   undefined
