@@ -100,9 +100,9 @@ ctype (Context ctx) (Var x) = do
   t <- case M.lookup x ctx of
          Just (Scheme xs s) -> do
                                  a <- Assign <$> foldrM go M.empty xs
-                                      where
-                                        go x' m = genVarName >>= \y -> M.insert x' y m
                                  return $ assign a s
+                                   where
+                                     go x' m = lift genVarName >>= \y -> M.insert x' y m
          Just t -> t
          Nothing -> undefined
   undefined
