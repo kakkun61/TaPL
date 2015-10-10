@@ -5,6 +5,9 @@
 *.lkshs
 dist/
 .stack-work/
+.cabal-sandbox/
+cabal.config
+cabal.sandbox.config
 
 ### JetBrains
 
