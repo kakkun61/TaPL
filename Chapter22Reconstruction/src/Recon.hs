@@ -6,7 +6,6 @@ import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Data.Foldable
-import Control.Applicative
 import Control.Monad.Trans.Except
 
 type VarName = Int
@@ -84,7 +83,7 @@ unify c =
         _ -> Left "invalid constraints"
 
 newtype VarNameSeed = VarNameSeed VarName
-  deriving (Show)
+  deriving (Eq, Show)
 
 varNameSeed :: VarName -> VarNameSeed
 varNameSeed = VarNameSeed
@@ -96,13 +95,13 @@ genVarName = state genVarName'
     genVarName' (VarNameSeed s) = (s, varNameSeed (succ s))
 
 ctype :: Context -> Term -> ExceptT String (State VarNameSeed) (Type, Set Constraint)
-ctype (Context ctx) t@(Var x) = do -- CT-Var'
+ctype (Context ctx) t@(Var x) = do -- CT-Var
   t <- case M.lookup x ctx of
          Just (Scheme xs s) -> do
-                                 a <- Assign <$> foldrM go M.empty xs
+                                 a <- Assign <$> foldlM go M.empty xs
                                  return $ assign a s
                                    where
-                                     go x' m = lift genVarName >>= \y -> return $ M.insert x' (TypeVar y) m
+                                     go m x' = lift genVarName >>= \y -> return $ M.insert x' (TypeVar y) m
          Just t -> return t
          Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show t)
   return (t, S.empty)
