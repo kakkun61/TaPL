@@ -1,4 +1,4 @@
-module Main where
+module Recon where
 
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -106,6 +106,3 @@ ctype (Context ctx) t@(Var x) = do -- CT-Var'
          Just t -> return t
          Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show t)
   return (t, S.empty)
-
-main :: IO ()
-main = undefined
