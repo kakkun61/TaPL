@@ -8,33 +8,36 @@ import Control.Monad.State
 import Data.Foldable
 import Control.Monad.Trans.Except
 
-type VarName = Int
+newtype ValueVarName = ValueVarName Int
+  deriving (Eq, Ord, Show)
+newtype TypeVarName = TypeVarName Int
+  deriving (Eq, Ord, Show)
 
-data Term = Var VarName
+data Term = Var ValueVarName
           | Zero
           | TTrue
           | TFalse
           | Succ Term
           | Pred Term
           | If Term Term Term
-          | Lambda VarName Term
-          | Let VarName Term Term
+          | Lambda ValueVarName Term
+          | Let ValueVarName Term Term
           deriving (Eq, Show)
 
-data Type = TypeVar VarName
+data Type = TypeVar TypeVarName
           | Nat
           | TBool
           | Arrow Type Type
-          | Scheme (Set VarName) Type
+          | Scheme (Set TypeVarName) Type
           deriving (Eq, Ord, Show)
 
-newtype Context = Context (Map VarName Type)
+newtype Context = Context (Map ValueVarName Type)
   deriving (Show)
 
 data Constraint = Constraint Type Type
   deriving (Eq, Ord, Show)
 
-newtype Assign = Assign (Map VarName Type)
+newtype Assign = Assign (Map TypeVarName Type)
   deriving (Show)
 
 class Assignable a where
@@ -55,7 +58,7 @@ instance Assignable Constraint where
 instance (Assignable a, Ord a) => Assignable (Set a) where
   assign a s = S.map (assign a) s
 
-fv :: Type -> Set VarName
+fv :: Type -> Set TypeVarName
 fv (TypeVar x) = S.singleton x
 fv Nat = S.empty
 fv TBool = S.empty
@@ -82,26 +85,23 @@ unify c =
                                                 (S.insert (Constraint s2 t2) c'))
         _ -> Left "invalid constraints"
 
-newtype VarNameSeed = VarNameSeed VarName
+newtype TypeVarNameSeed = TypeVarNameSeed TypeVarName
   deriving (Eq, Show)
 
-varNameSeed :: VarName -> VarNameSeed
-varNameSeed = VarNameSeed
-
-genVarName :: State VarNameSeed VarName
-genVarName = state genVarName'
+genTypeVarName :: State TypeVarNameSeed TypeVarName
+genTypeVarName = state genTypeVarName'
   where
-    genVarName' :: VarNameSeed -> (VarName, VarNameSeed)
-    genVarName' (VarNameSeed s) = (s, varNameSeed (succ s))
+    genTypeVarName' :: TypeVarNameSeed -> (TypeVarName, TypeVarNameSeed)
+    genTypeVarName' (TypeVarNameSeed s@(TypeVarName n)) = (s, TypeVarNameSeed (TypeVarName(succ n)))
 
-ctype :: Context -> Term -> ExceptT String (State VarNameSeed) (Type, Set Constraint)
-ctype (Context ctx) t@(Var x) = do -- CT-Var
-  t <- case M.lookup x ctx of
+ctype :: Context -> Term -> ExceptT String (State TypeVarNameSeed) (Type, Set Constraint)
+ctype (Context ctx) term@(Var x) = do -- CT-Var
+  typ <- case M.lookup x ctx of
          Just (Scheme xs s) -> do
                                  a <- Assign <$> foldlM go M.empty xs
                                  return $ assign a s
                                    where
-                                     go m x' = lift genVarName >>= \y -> return $ M.insert x' (TypeVar y) m
-         Just t -> return t
-         Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show t)
-  return (t, S.empty)
+                                     go m x' = lift genTypeVarName >>= \y -> return $ M.insert x' (TypeVar y) m
+         Just typ -> return typ
+         Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show term)
+  return (typ, S.empty)
