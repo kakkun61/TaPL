@@ -6,6 +6,7 @@ import qualified Data.Set as S
 import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Control.Monad.Trans.Except
+import Data.Either
 
 spec :: Spec
 spec = do
@@ -46,3 +47,10 @@ spec = do
           c = Context $ M.singleton 0 (Scheme (S.fromList [0, 1]) (Arrow (TypeVar 0) (TypeVar 1)))
           t = Var 0
         runState (runExceptT $ ctype c t) (varNameSeed 0) `shouldBe` (Right (Arrow (TypeVar 0) (TypeVar 1), S.fromList []), VarNameSeed 2)
+
+    describe "failure" $ do
+      it "∅ ⊦ x ⇒ fail" $ do
+        let
+          c = Context $ M.empty
+          t = Var 0
+        evalState (runExceptT $ ctype c t) (varNameSeed 0) `shouldSatisfy` isLeft
