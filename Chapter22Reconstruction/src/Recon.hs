@@ -21,6 +21,7 @@ data Term = Var ValueVarName
           | Pred Term
           | If Term Term Term
           | Lambda ValueVarName Term
+          | App Term Term
           | Let ValueVarName Term Term
           deriving (Eq, Show)
 
