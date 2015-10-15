@@ -74,7 +74,7 @@ spec = do
 
   describe "CT-App" $ do
     describe "success" $ do
-      it "∅ ⊦ λx. true 0 : S | {S} {T → Bool = Nat → S}" $ do
+      it "∅ ⊦ λx. true 0 : S | {T, S} {T → Bool = Nat → S}" $ do
          pending
          let
            c = Context $ M.empty
