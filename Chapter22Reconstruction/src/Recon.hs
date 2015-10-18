@@ -21,7 +21,7 @@ data Term = Var ValueVarName
           | Pred Term
           | IsZero Term
           | If Term Term Term
-          | Lambda ValueVarName Term
+          | Abs ValueVarName Term
           | App Term Term
           | Let ValueVarName Term Term
           deriving (Eq, Show)
@@ -107,3 +107,8 @@ ctype (Context ctx) term@(Var x) = do -- CT-Var
          Just typ -> return typ
          Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show term)
   return (typ, S.empty)
+ctype (Context ctx) term@(Abs x t) = do -- CT-AbsInf
+  xt <- lift $ TypeVar <$> genTypeVarName
+  let ctx' = Context $ M.insert x xt ctx
+  (typ, cons) <- ctype ctx' t
+  return (Arrow xt typ, cons)

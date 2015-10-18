@@ -80,13 +80,12 @@ spec = do
           seed = TypeVarNameSeed $ TypeVarName 0
         evalState (runExceptT $ ctype ctx term) seed `shouldSatisfy` isLeft
 
-  describe "CT-Abs" $ do
+  describe "CT-AbsInf" $ do
     describe "success" $ do
       it "∅ ⊦ λx. x : S → S | {S} {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
-          term  = Lambda (ValueVarName 0) (Var $ ValueVarName 0)
+          term  = Abs (ValueVarName 0) (Var $ ValueVarName 0)
           seed  = TypeVarNameSeed $ TypeVarName 0
           typ   = Arrow (TypeVar $ TypeVarName 0) (TypeVar $ TypeVarName 0)
           cons  = S.empty
@@ -95,10 +94,9 @@ spec = do
 
     describe "failure" $ do
       it "∅ ⊦ λx. y ⇒ fail" $ do
-        pending
         let
           ctx  = Context $ M.empty
-          term = Lambda (ValueVarName 0) (Var $ ValueVarName 1)
+          term = Abs (ValueVarName 0) (Var $ ValueVarName 1)
           seed = TypeVarNameSeed $ TypeVarName 0
         evalState (runExceptT $ ctype ctx term) seed `shouldSatisfy` isLeft
 
@@ -108,7 +106,7 @@ spec = do
         pending
         let
           ctx  = Context $ M.empty
-          term  = App (Lambda (ValueVarName 0) TTrue) Zero
+          term  = App (Abs (ValueVarName 0) TTrue) Zero
           seed  = TypeVarNameSeed $ TypeVarName 0
           typ   = TypeVar $ TypeVarName 1
           cons  = S.singleton $ Constraint (Arrow (TypeVar $ TypeVarName 0) TBool) (Arrow Nat (TypeVar $ TypeVarName 1))
