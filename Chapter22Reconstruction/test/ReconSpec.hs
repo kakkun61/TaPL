@@ -127,3 +127,82 @@ spec = do
           cons  = S.empty
           seed' = TypeVarNameSeed $ TypeVarName 0
         runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+
+  describe "CT-Succ" $ do
+    describe "success" $ do
+      it "∅ ⊦ succ 0 : Nat | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = Succ Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = Nat
+          cons  = S.singleton $ Constraint Nat Nat
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-Pred" $ do
+    describe "success" $ do
+      it "∅ ⊦ pred 0 : Nat | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = Pred Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = Nat
+          cons  = S.singleton $ Constraint Nat Nat
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-IsZero" $ do
+    describe "success" $ do
+      it "∅ ⊦ iszero 0 : Nat | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = IsZero Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = TBool
+          cons  = S.singleton $ Constraint Nat Nat
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-True" $ do
+    describe "success" $ do
+      it "∅ ⊦ true : Bool | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = TTrue
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = TBool
+          cons  = S.empty
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-False" $ do
+    describe "success" $ do
+      it "∅ ⊦ false : Bool | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = TFalse
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = TBool
+          cons  = S.empty
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-If" $ do
+    describe "success" $ do
+      it "∅ ⊦ if true then 0 else 0 : Bool | ∅ {}" $ do
+        pending
+        let
+          ctx   = Context $ M.empty
+          term  = If TTrue Zero Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = Nat
+          cons  = S.fromList [Constraint TBool TBool, Constraint Nat Nat]
+          seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')

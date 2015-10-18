@@ -19,6 +19,7 @@ data Term = Var ValueVarName
           | TFalse
           | Succ Term
           | Pred Term
+          | IsZero Term
           | If Term Term Term
           | Lambda ValueVarName Term
           | App Term Term
