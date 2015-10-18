@@ -134,3 +134,5 @@ ctype ctx (IsZero t) = do -- CT-IsZero
   return (TBool, cons')
 ctype _ TTrue = do -- CT-True
   return (TBool, S.empty)
+ctype _ TFalse = do -- CT-False
+  return (TBool, S.empty)

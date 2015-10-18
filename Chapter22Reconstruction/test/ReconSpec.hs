@@ -176,7 +176,6 @@ spec = do
   describe "CT-False" $ do
     describe "success" $ do
       it "∅ ⊦ false : Bool | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = TFalse
