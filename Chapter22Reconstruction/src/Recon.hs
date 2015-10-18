@@ -105,8 +105,8 @@ ctype (Context ctx) term@(Var x) = do -- CT-Var
          Just (Scheme xs s) -> do
                                  a <- Assign <$> foldlM go M.empty xs
                                  return $ assign a s
-                                   where
-                                     go m x' = lift genTypeVarName >>= \y -> return $ M.insert x' (TypeVar y) m
+                                 where
+                                   go m x' = lift genTypeVarName >>= \y -> return $ M.insert x' (TypeVar y) m
          Just typ -> return typ
          Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show term)
   return (typ, S.empty)
