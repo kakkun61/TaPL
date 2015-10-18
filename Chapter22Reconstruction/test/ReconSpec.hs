@@ -128,7 +128,6 @@ spec = do
   describe "CT-Succ" $ do
     describe "success" $ do
       it "∅ ⊦ succ 0 : Nat | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = Succ Zero
@@ -141,7 +140,6 @@ spec = do
   describe "CT-Pred" $ do
     describe "success" $ do
       it "∅ ⊦ pred 0 : Nat | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = Pred Zero
