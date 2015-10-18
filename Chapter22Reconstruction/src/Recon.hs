@@ -128,5 +128,9 @@ ctype ctx (Pred t) = do -- CT-Pred
   (typ, cons) <- ctype ctx t
   let cons' = S.insert (Constraint typ Nat) cons
   return (Nat, cons')
+ctype ctx (IsZero t) = do -- CT-IsZero
+  (typ, cons) <- ctype ctx t
+  let cons' = S.insert (Constraint typ Nat) cons
+  return (TBool, cons')
 ctype _ TTrue = do -- CT-True
   return (TBool, S.empty)

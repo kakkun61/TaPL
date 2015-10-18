@@ -152,7 +152,6 @@ spec = do
   describe "CT-IsZero" $ do
     describe "success" $ do
       it "∅ ⊦ iszero 0 : Nat | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = IsZero Zero
