@@ -44,6 +44,8 @@ newtype Assign = Assign (Map TypeVarName Type)
 
 class Assignable a where
   assign :: Assign -> a -> a
+  assigns :: [Assign] -> a -> a
+  assigns as t = foldl (flip assign) t as
 
 instance Assignable Type where
   assign (Assign m) t@(TypeVar x) = case M.lookup x m of
@@ -90,6 +92,7 @@ unify c =
 newtype TypeVarNameSeed = TypeVarNameSeed TypeVarName
   deriving (Eq, Show)
 
+-- | gensym
 genTypeVarName :: State TypeVarNameSeed TypeVarName
 genTypeVarName = state genTypeVarName'
   where
@@ -142,3 +145,16 @@ ctype ctx (If t1 t2 t3) = do -- CT-If
   (typ3, cons3) <- ctype ctx t3
   let cons = S.unions [cons1, cons2, cons3, S.fromList [Constraint typ1 TBool, Constraint typ2 typ3]]
   return (typ2, cons)
+ctype ctx@(Context mctx) (Let x t1 t2) = do -- CT-LetPoly'
+  (typ1, cons1) <- ctype ctx t1
+  let e = unify cons1
+  case e of
+    Right asgns -> do
+                 let
+                   typ1' = assigns asgns typ1
+                   tvs = [tv | tv <- S.toList $ fv typ1'
+                             , tv `notElem` concatMap (S.toList . fv) (M.elems mctx)
+                         ]
+                   ctx' = Context $ M.insert x (Scheme (S.fromList tvs) typ1') mctx
+                 ctype ctx' t2
+    Left s -> throwE $ s ++ " at CT-LetPoly'"

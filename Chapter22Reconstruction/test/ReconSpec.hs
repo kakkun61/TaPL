@@ -10,7 +10,7 @@ import Data.Either
 
 spec :: Spec
 spec = do
-  describe "CT-Var" $ do
+  describe "CT-Var'" $ do
     describe "success" $ do
       it "x : Nat ⊦ x : Nat | ∅ {}" $ do
         let
@@ -195,4 +195,20 @@ spec = do
           typ   = Nat
           cons  = S.fromList [Constraint TBool TBool, Constraint Nat Nat]
           seed' = TypeVarNameSeed $ TypeVarName 0
+        runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "CT-LetPoly'" $ do
+    describe "success" $ do
+      it "∅ ⊦ let id = λ x. x in if id true then id 0 else 0 : X4 | {X1, X2, X3, X4} {X1 → X1 = Bool → X2, X2 = Bool, X3 → X3 = Nat → X4, X4 = Nat}" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Let (ValueVarName 0) (Abs (ValueVarName 1) (Var $ ValueVarName 1)) (If (App (Var $ ValueVarName 0) TTrue) (App (Var $ ValueVarName 0) Zero) Zero)
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          typ   = TypeVar $ TypeVarName 4
+          cons  = S.fromList [ Constraint (Arrow (TypeVar $ TypeVarName 1) (TypeVar $ TypeVarName 1)) (Arrow TBool (TypeVar $ TypeVarName 2))
+                             , Constraint (TypeVar $ TypeVarName 2) TBool
+                             , Constraint (Arrow (TypeVar $ TypeVarName 3) (TypeVar $ TypeVarName 3)) (Arrow Nat (TypeVar $ TypeVarName 4))
+                             , Constraint (TypeVar $ TypeVarName 4) Nat
+                             ]
+          seed' = TypeVarNameSeed $ TypeVarName 5
         runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
