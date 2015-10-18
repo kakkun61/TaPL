@@ -103,7 +103,6 @@ spec = do
   describe "CT-App" $ do
     describe "success" $ do
       it "∅ ⊦ λx. true 0 : S | {T, S} {T → Bool = Nat → S}" $ do
-        pending
         let
           ctx  = Context $ M.empty
           term  = App (Abs (ValueVarName 0) TTrue) Zero
@@ -116,7 +115,6 @@ spec = do
   describe "CT-Zero" $ do
     describe "success" $ do
       it "∅ ⊦ 0 : Nat | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = Zero
@@ -169,7 +167,6 @@ spec = do
   describe "CT-True" $ do
     describe "success" $ do
       it "∅ ⊦ true : Bool | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = TTrue

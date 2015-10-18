@@ -107,8 +107,18 @@ ctype (Context ctx) term@(Var x) = do -- CT-Var
          Just typ -> return typ
          Nothing -> throwE $ "context has no corresponding type\n\tcontext: " ++ (show $ M.toList ctx) ++ "\n\tterm: " ++ (show term)
   return (typ, S.empty)
-ctype (Context ctx) term@(Abs x t) = do -- CT-AbsInf
+ctype (Context ctx) (Abs x t) = do -- CT-AbsInf
   xt <- lift $ TypeVar <$> genTypeVarName
   let ctx' = Context $ M.insert x xt ctx
   (typ, cons) <- ctype ctx' t
   return (Arrow xt typ, cons)
+ctype ctx (App t1 t2) = do -- CT-App
+  (typ1, cons1) <- ctype ctx t1
+  (typ2, cons2) <- ctype ctx t2
+  typ <- lift $ TypeVar <$> genTypeVarName
+  let cons = S.unions [cons1, cons2, S.singleton $ Constraint typ1 (Arrow typ2 typ)]
+  return (typ, cons)
+ctype _ Zero = do -- CT-Zero
+  return (Nat, S.empty)
+ctype _ TTrue = do -- CT-True
+  return (TBool, S.empty)
