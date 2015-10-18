@@ -188,7 +188,6 @@ spec = do
   describe "CT-If" $ do
     describe "success" $ do
       it "∅ ⊦ if true then 0 else 0 : Bool | ∅ {}" $ do
-        pending
         let
           ctx   = Context $ M.empty
           term  = If TTrue Zero Zero
