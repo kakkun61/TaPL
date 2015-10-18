@@ -40,7 +40,7 @@ data Constraint = Constraint Type Type
   deriving (Eq, Ord, Show)
 
 newtype Assign = Assign (Map TypeVarName Type)
-  deriving (Show)
+  deriving (Eq, Show)
 
 class Assignable a where
   assign :: Assign -> a -> a
@@ -147,8 +147,7 @@ ctype ctx (If t1 t2 t3) = do -- CT-If
   return (typ2, cons)
 ctype ctx@(Context mctx) (Let x t1 t2) = do -- CT-LetPoly'
   (typ1, cons1) <- ctype ctx t1
-  let e = unify cons1
-  case e of
+  case unify cons1 of
     Right asgns -> do
                  let
                    typ1' = assigns asgns typ1
@@ -158,3 +157,16 @@ ctype ctx@(Context mctx) (Let x t1 t2) = do -- CT-LetPoly'
                    ctx' = Context $ M.insert x (Scheme (S.fromList tvs) typ1') mctx
                  ctype ctx' t2
     Left s -> throwE $ s ++ " at CT-LetPoly'"
+
+-- | 主要解 principal solution
+prinso :: Context -> Term -> TypeVarNameSeed -> Either String ([Assign], Type)
+prinso ctx term seed =
+  case evalState (runExceptT $ ctype ctx term) seed of
+    Right (typ, cons) -> prinso' typ cons
+    Left s -> Left s
+
+prinso' :: Type -> Set Constraint -> Either String ([Assign], Type)
+prinso' typ cons =
+  case unify cons of
+    Right asgns -> Right (asgns, assigns asgns typ)
+    Left s -> Left s

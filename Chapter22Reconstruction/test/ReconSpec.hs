@@ -42,7 +42,7 @@ spec = do
           seed' = TypeVarNameSeed $ TypeVarName 1
         runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
 
-      it "x : ∀X. X ⊦ x : ∀S.S | {S} {}" $ do
+      it "x : ∀X. X ⊦ x : S | {S} {}" $ do
         let
           ctx   = Context $ M.singleton (ValueVarName 0) (Scheme (S.singleton $ TypeVarName 0) (TypeVar $ TypeVarName 0))
           term  = Var $ ValueVarName 0
@@ -212,3 +212,170 @@ spec = do
                              ]
           seed' = TypeVarNameSeed $ TypeVarName 5
         runState (runExceptT $ ctype ctx term) seed `shouldBe` (Right (typ, cons), seed')
+
+  describe "principal solution" $ do
+    describe "success" $ do
+      it "x : Nat ⊦ x : Nat" $ do
+        let
+          ctx   = Context $ M.singleton (ValueVarName 0) Nat
+          term  = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "x : Bool ⊦ x : Bool" $ do
+        let
+          ctx   = Context $ M.singleton (ValueVarName 0) TBool
+          term = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TBool
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "x : X ⊦ x : X" $ do
+        let
+          ctx = Context $ M.singleton (ValueVarName 0) (TypeVar $ TypeVarName 0)
+          term = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 1
+          asgns = []
+          typ   = TypeVar $ TypeVarName 0
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "x : ∀X. X ⊦ x : S" $ do
+        let
+          ctx   = Context $ M.singleton (ValueVarName 0) (Scheme (S.singleton $ TypeVarName 0) (TypeVar $ TypeVarName 0))
+          term  = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TypeVar $ TypeVarName 0
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "x : ∀X Y. X ⊦ x : S1" $ do
+        let
+          ctx   = Context $ M.singleton (ValueVarName 0) (Scheme (S.fromList $ map TypeVarName [0, 1]) (TypeVar $ TypeVarName 0))
+          term  = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TypeVar $ TypeVarName 0
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "x : ∀X Y. X → Y ⊦ x : S1 → S2" $ do
+        let
+          ctx   = Context $ M.singleton (ValueVarName 0) (Scheme (S.fromList $ map TypeVarName [0, 1]) (Arrow (TypeVar $ TypeVarName 0) (TypeVar $ TypeVarName 1)))
+          term  = Var $ ValueVarName 0
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Arrow (TypeVar $ TypeVarName 0) (TypeVar $ TypeVarName 1)
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ λx. x : S → S" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Abs (ValueVarName 0) (Var $ ValueVarName 0)
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Arrow (TypeVar $ TypeVarName 0) (TypeVar $ TypeVarName 0)
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ λx. true 0 : Bool" $ do
+        let
+          ctx  = Context $ M.empty
+          term  = App (Abs (ValueVarName 0) TTrue) Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = [ Assign $ M.singleton (TypeVarName 0) Nat
+                  , Assign $ M.singleton (TypeVarName 1) TBool
+                  ]
+          typ   = TBool
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ 0 : Nat" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ succ 0 : Nat" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Succ Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ pred 0 : Nat" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Pred Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ iszero 0 : Nat" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = IsZero Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TBool
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ true : Bool" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = TTrue
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TBool
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ false : Bool" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = TFalse
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = TBool
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ if true then 0 else 0 : Bool" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = If TTrue Zero Zero
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = []
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+      it "∅ ⊦ let id = λ x. x in if id true then id 0 else 0 : Nat" $ do
+        let
+          ctx   = Context $ M.empty
+          term  = Let (ValueVarName 0) (Abs (ValueVarName 1) (Var $ ValueVarName 1)) (If (App (Var $ ValueVarName 0) TTrue) (App (Var $ ValueVarName 0) Zero) Zero)
+          seed  = TypeVarNameSeed $ TypeVarName 0
+          asgns = [ Assign $ M.singleton (TypeVarName 2) TBool
+                  , Assign $ M.singleton (TypeVarName 4) Nat
+                  , Assign $ M.singleton (TypeVarName 1) TBool
+                  , Assign $ M.singleton (TypeVarName 3) Nat
+                  ]
+          typ   = Nat
+        prinso ctx term seed `shouldBe` Right (asgns, typ)
+
+    describe "failure" $ do
+      it "∅ ⊦ x ⇒ fail" $ do
+        let
+          ctx  = Context $ M.empty
+          term = Var $ ValueVarName 0
+          seed = TypeVarNameSeed $ TypeVarName 0
+        prinso ctx term seed `shouldSatisfy` isLeft
+
+      it "∅ ⊦ λx. y ⇒ fail" $ do
+        let
+          ctx  = Context $ M.empty
+          term = Abs (ValueVarName 0) (Var $ ValueVarName 1)
+          seed = TypeVarNameSeed $ TypeVarName 0
+        prinso ctx term seed `shouldSatisfy` isLeft
