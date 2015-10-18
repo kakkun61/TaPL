@@ -12,19 +12,19 @@ spec :: Spec
 spec = do
   describe "CT-Var" $ do
     describe "success" $ do
-      it "x : Nat ⊦ x : Nat | {} {}" $ do
+      it "x : Nat ⊦ x : Nat | ∅ {}" $ do
         let
           c = Context $ M.singleton (ValueVarName 0) Nat
           t = Var $ ValueVarName 0
         runState (runExceptT $ ctype c t) (TypeVarNameSeed $ TypeVarName 0) `shouldBe` (Right (Nat, S.empty), TypeVarNameSeed $ TypeVarName 0)
 
-      it "x : Bool ⊦ x : Bool | {} {}" $ do
+      it "x : Bool ⊦ x : Bool | ∅ {}" $ do
         let
           c = Context $ M.singleton (ValueVarName 0) TBool
           t = Var $ ValueVarName 0
         runState (runExceptT $ ctype c t) (TypeVarNameSeed $ TypeVarName 0) `shouldBe` (Right (TBool, S.empty), TypeVarNameSeed $ TypeVarName 0)
 
-      it "x : X ⊦ x : X | {} {}" $ do
+      it "x : X ⊦ x : X | ∅ {}" $ do
         let
           c = Context $ M.singleton (ValueVarName 0) (TypeVar $ TypeVarName 0)
           t = Var $ ValueVarName 0
