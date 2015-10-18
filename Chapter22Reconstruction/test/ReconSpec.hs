@@ -80,3 +80,12 @@ spec = do
            c = Context $ M.empty
            t = App (Lambda (ValueVarName 0) TTrue) Zero
          runState (runExceptT $ ctype c t) (TypeVarNameSeed $ TypeVarName 0) `shouldBe` (Right ((TypeVar $ TypeVarName 1), S.singleton $ Constraint (Arrow (TypeVar $ TypeVarName 0) TBool) (Arrow Nat (TypeVar $ TypeVarName 1))), TypeVarNameSeed $ TypeVarName 2)
+
+  describe "CT-Zero" $ do
+    describe "success" $ do
+      it "∅ ⊦ 0 : Nat | ∅ {}" $ do
+        pending
+        let
+          c = Context $ M.empty
+          t = Zero
+        runState (runExceptT $ ctype c t) (TypeVarNameSeed $ TypeVarName 0) `shouldBe` (Right (Nat, S.empty), TypeVarNameSeed $ TypeVarName 0)
