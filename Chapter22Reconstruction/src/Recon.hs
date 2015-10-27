@@ -1,4 +1,4 @@
-module Recon ( ValueVarName (..)
+module Recon {-( ValueVarName (..)
              , TypeVarName (..)
              , Term (..)
              , Type (..)
@@ -11,7 +11,7 @@ module Recon ( ValueVarName (..)
              , ctype
              , prinso
              , prinso'
-             ) where
+             )-} where
 
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -20,10 +20,9 @@ import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Data.Foldable
 import Control.Monad.Trans.Except
-import Text.Parsec (Parsec)
+import Text.Parsec (Parsec, (<|>))
 import qualified Text.Parsec as P
 import Data.ByteString (ByteString)
-import qualified Data.ByteString as BS
 
 newtype ValueVarName = ValueVarName Int
   deriving (Eq, Ord, Show)
@@ -192,17 +191,120 @@ prinso' typ cons =
 
 -- parsing
 
-pzero :: Parsec ByteString () Term
+type Parser = Parsec ByteString ()
+
+pterm :: Parser Term
+pterm =
+  P.choice $ map P.try [ pvart
+                       , pzero
+                       , ptrue
+                       , pfalse
+                       , psucc
+                       , ppred
+                       , piszero
+                       , pif
+                       , pabs
+                       , papp
+                       , plet
+                       , P.between (P.char '(') (P.char ')') pterm
+                       ]
+
+pvar :: Parser ValueVarName
+pvar = do
+  fmap (ValueVarName . read) $
+    P.try $ do
+      h <- P.oneOf ['1' .. '9']
+      tl <- P.many P.digit
+      return $ h:tl
+    <|> do
+      z <- P.char '0'
+      return [z]
+
+pvart :: Parser Term
+pvart = do
+  x <- pvar
+  return $ Var x
+
+pzero :: Parser Term
 pzero = do
-  P.string "zero"
+  _ <- P.string "zero"
   return Zero
 
-ptrue :: Parsec ByteString () Term
+ptrue :: Parser Term
 ptrue = do
-  P.string "true"
+  _ <- P.string "true"
   return TTrue
 
-pfalse :: Parsec ByteString () Term
+pfalse :: Parser Term
 pfalse = do
-  P.string "false"
+  _ <- P.string "false"
   return TFalse
+
+psucc :: Parser Term
+psucc = do
+  _ <- P.string "succ"
+  P.spaces
+  t <- pterm
+  return $ Succ t
+
+ppred :: Parser Term
+ppred = do
+  _ <- P.string "pred"
+  P.spaces
+  t <- pterm
+  return $ Pred t
+
+piszero :: Parser Term
+piszero = do
+  _ <- P.string "iszero"
+  P.spaces
+  t <- pterm
+  return $ IsZero t
+
+pif :: Parser Term
+pif = do
+  _ <- P.string "if"
+  P.spaces
+  t1 <- pterm
+  P.spaces
+  _ <- P.string "then"
+  P.spaces
+  t2 <- pterm
+  P.spaces
+  _ <- P.string "else"
+  P.spaces
+  t3 <- pterm
+  return $ If t1 t2 t3
+
+pabs :: Parser Term
+pabs = do
+  _ <- P.string "λ"
+  P.spaces
+  x <- pvar
+  P.spaces
+  _ <- P.string "."
+  P.spaces
+  t <- pterm
+  return $ Abs x t
+
+papp :: Parser Term
+papp = do
+  t1 <- pterm
+  P.spaces
+  t2 <- pterm
+  return $ App t1 t2
+
+plet :: Parser Term
+plet = do
+  _ <- P.string "let"
+  P.spaces
+  x <- pvar
+  P.spaces
+  _ <- P.string "="
+  P.spaces
+  t1 <- pterm
+  P.spaces
+  _ <- P.string "in"
+  P.spaces
+  t2 <- pterm
+  return $ Let x t1 t2
