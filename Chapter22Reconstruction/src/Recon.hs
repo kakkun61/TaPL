@@ -20,6 +20,10 @@ import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Data.Foldable
 import Control.Monad.Trans.Except
+import Text.Parsec (Parsec)
+import qualified Text.Parsec as P
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 
 newtype ValueVarName = ValueVarName Int
   deriving (Eq, Ord, Show)
@@ -51,6 +55,8 @@ newtype Context = Context (Map ValueVarName Type)
 
 data Constraint = Constraint Type Type
   deriving (Eq, Ord, Show)
+
+-- reconstruction
 
 newtype Assign = Assign (Map TypeVarName Type)
   deriving (Eq, Show)
@@ -183,3 +189,20 @@ prinso' typ cons =
   case unify cons of
     Right asgns -> Right (asgns, assigns asgns typ)
     Left s -> Left s
+
+-- parsing
+
+pzero :: Parsec ByteString () Term
+pzero = do
+  P.string "zero"
+  return Zero
+
+ptrue :: Parsec ByteString () Term
+ptrue = do
+  P.string "true"
+  return TTrue
+
+pfalse :: Parsec ByteString () Term
+pfalse = do
+  P.string "false"
+  return TFalse
