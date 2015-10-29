@@ -281,7 +281,7 @@ pif = do
 
 pabs :: Parser Term
 pabs = do
-  _ <- P.string "λ"
+  _ <- P.oneOf ['λ', '\\']
   P.spaces
   x <- pvar
   P.spaces
