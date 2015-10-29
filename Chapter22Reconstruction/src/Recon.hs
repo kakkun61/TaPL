@@ -195,6 +195,10 @@ type Parser = Parsec ByteString ()
 
 pterm :: Parser Term
 pterm =
+  P.chainl1 pterma $ P.spaces >> return App
+
+pterma :: Parser Term
+pterma =
   P.choice $ map P.try [ pvart
                        , pzero
                        , ptrue
@@ -204,7 +208,6 @@ pterm =
                        , piszero
                        , pif
                        , pabs
-                       , papp
                        , plet
                        , P.between (P.char '(') (P.char ')') pterm
                        ]
@@ -278,7 +281,7 @@ pif = do
 
 pabs :: Parser Term
 pabs = do
-  _ <- P.string "λ"
+  _ <- P.string "\\"
   P.spaces
   x <- pvar
   P.spaces
