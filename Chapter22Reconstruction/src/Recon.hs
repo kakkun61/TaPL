@@ -311,3 +311,10 @@ plet = do
   P.spaces
   t2 <- pterm
   return $ Let x t1 t2
+
+main :: IO ()
+main = do
+  script <- getContent
+  let result = do
+    term <- parse pterm "recon" script
+    recon
