@@ -22,7 +22,7 @@ import Data.Foldable
 import Control.Monad.Trans.Except
 import Text.Parsec (Parsec, (<|>))
 import qualified Text.Parsec as P
-import Data.ByteString (ByteString)
+import Data.Text (Text)
 
 newtype ValueVarName = ValueVarName Int
   deriving (Eq, Ord, Show)
@@ -191,7 +191,7 @@ prinso' typ cons =
 
 -- parsing
 
-type Parser = Parsec ByteString ()
+type Parser = Parsec Text ()
 
 pterm :: Parser Term
 pterm =
@@ -281,7 +281,7 @@ pif = do
 
 pabs :: Parser Term
 pabs = do
-  _ <- P.string "\\"
+  _ <- P.string "λ"
   P.spaces
   x <- pvar
   P.spaces
@@ -312,9 +312,9 @@ plet = do
   t2 <- pterm
   return $ Let x t1 t2
 
-main :: IO ()
-main = do
-  script <- getContent
-  let result = do
-    term <- parse pterm "recon" script
-    recon
+--main :: IO ()
+--main = do
+--  script <- getContent
+--  let result = do
+--    term <- parse pterm "recon" script
+--    recon
