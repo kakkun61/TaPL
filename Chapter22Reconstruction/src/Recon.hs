@@ -285,7 +285,7 @@ pabs = do
   P.spaces
   x <- pvar
   P.spaces
-  _ <- P.string "."
+  _ <- P.char '.'
   P.spaces
   t <- pterm
   return $ Abs x t
@@ -303,7 +303,7 @@ plet = do
   P.spaces
   x <- pvar
   P.spaces
-  _ <- P.string "="
+  _ <- P.char '='
   P.spaces
   t1 <- pterm
   P.spaces
