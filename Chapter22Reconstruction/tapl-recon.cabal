@@ -31,3 +31,4 @@ test-suite spec
                   , containers
                   , mtl
                   , transformers
+                  , parsec
