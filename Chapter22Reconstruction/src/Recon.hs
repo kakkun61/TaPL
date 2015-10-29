@@ -195,7 +195,7 @@ type Parser = Parsec Text ()
 
 pterm :: Parser Term
 pterm =
-  P.chainl1 pterma $ P.spaces >> return App
+  P.try (P.chainl1 pterma $ P.spaces >> return App) <|> pterma
 
 pterma :: Parser Term
 pterma =
