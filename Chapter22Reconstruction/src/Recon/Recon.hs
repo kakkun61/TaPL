@@ -1,9 +1,4 @@
-module Recon.Recon {-( ValueVarName (..)
-                   , TypeVarName (..)
-                   , Term (..)
-                   , Type (..)
-                   , Context (..)
-                   , Constraint (..)
+module Recon.Recon ( Constraint (..)
                    , Assign (..)
                    , TypeVarNameSeed (..)
                    , assign
@@ -11,7 +6,10 @@ module Recon.Recon {-( ValueVarName (..)
                    , ctype
                    , prinso
                    , prinso'
-                   )-} where
+                   , calcTypeVarNameSeed
+                   ) where
+
+import Recon.Type
 
 import Data.Set (Set)
 import qualified Data.Set as S
@@ -20,42 +18,9 @@ import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Data.Foldable
 import Control.Monad.Trans.Except
-import Text.Parsec (Parsec, (<|>))
-import qualified Text.Parsec as P
-import Data.Text (Text)
-
-newtype ValueVarName = ValueVarName Int
-  deriving (Eq, Ord, Show)
-newtype TypeVarName = TypeVarName Int
-  deriving (Eq, Ord, Show)
-
-data Term = Var ValueVarName
-          | Zero
-          | TTrue
-          | TFalse
-          | Succ Term
-          | Pred Term
-          | IsZero Term
-          | If Term Term Term
-          | Abs ValueVarName Term
-          | App Term Term
-          | Let ValueVarName Term Term
-          deriving (Eq, Show)
-
-data Type = TypeVar TypeVarName
-          | Nat
-          | TBool
-          | Arrow Type Type
-          | Scheme (Set TypeVarName) Type
-          deriving (Eq, Ord, Show)
-
-newtype Context = Context (Map ValueVarName Type)
-  deriving (Show)
 
 data Constraint = Constraint Type Type
   deriving (Eq, Ord, Show)
-
--- reconstruction
 
 newtype Assign = Assign (Map TypeVarName Type)
   deriving (Eq, Show)
@@ -117,6 +82,10 @@ genTypeVarName = state genTypeVarName'
     genTypeVarName' :: TypeVarNameSeed -> (TypeVarName, TypeVarNameSeed)
     genTypeVarName' (TypeVarNameSeed s@(TypeVarName n)) = (s, TypeVarNameSeed (TypeVarName(succ n)))
 
+-- TODO implement correctly. temporary implimentation.
+calcTypeVarNameSeed :: Context -> Term -> TypeVarNameSeed
+calcTypeVarNameSeed ctx term = TypeVarNameSeed $ TypeVarName 0
+
 ctype :: Context -> Term -> ExceptT String (State TypeVarNameSeed) (Type, Set Constraint)
 ctype (Context ctx) term@(Var x) = do -- CT-Var
   typ <- case M.lookup x ctx of
@@ -177,9 +146,9 @@ ctype ctx@(Context mctx) (Let x t1 t2) = do -- CT-LetPoly'
     Left s -> throwE $ s ++ " at CT-LetPoly'"
 
 -- | 主要解 principal solution
-prinso :: Context -> Term -> TypeVarNameSeed -> Either String ([Assign], Type)
-prinso ctx term seed =
-  case evalState (runExceptT $ ctype ctx term) seed of
+prinso :: Context -> Term -> Either String ([Assign], Type)
+prinso ctx term =
+  case evalState (runExceptT $ ctype ctx term) (calcTypeVarNameSeed ctx term) of
     Right (typ, cons) -> prinso' typ cons
     Left s -> Left s
 
@@ -188,133 +157,3 @@ prinso' typ cons =
   case unify cons of
     Right asgns -> Right (asgns, assigns asgns typ)
     Left s -> Left s
-
--- parsing
-
-type Parser = Parsec Text ()
-
-pterm :: Parser Term
-pterm =
-  P.try (P.chainl1 pterma $ P.spaces >> return App) <|> pterma
-
-pterma :: Parser Term
-pterma =
-  P.choice $ map P.try [ pvart
-                       , pzero
-                       , ptrue
-                       , pfalse
-                       , psucc
-                       , ppred
-                       , piszero
-                       , pif
-                       , pabs
-                       , plet
-                       , P.between (P.char '(') (P.char ')') pterm
-                       ]
-
-pvar :: Parser ValueVarName
-pvar = do
-  fmap (ValueVarName . read) $
-    P.try $ do
-      h <- P.oneOf ['1' .. '9']
-      tl <- P.many P.digit
-      return $ h:tl
-    <|> do
-      z <- P.char '0'
-      return [z]
-
-pvart :: Parser Term
-pvart = do
-  x <- pvar
-  return $ Var x
-
-pzero :: Parser Term
-pzero = do
-  _ <- P.string "zero"
-  return Zero
-
-ptrue :: Parser Term
-ptrue = do
-  _ <- P.string "true"
-  return TTrue
-
-pfalse :: Parser Term
-pfalse = do
-  _ <- P.string "false"
-  return TFalse
-
-psucc :: Parser Term
-psucc = do
-  _ <- P.string "succ"
-  P.spaces
-  t <- pterm
-  return $ Succ t
-
-ppred :: Parser Term
-ppred = do
-  _ <- P.string "pred"
-  P.spaces
-  t <- pterm
-  return $ Pred t
-
-piszero :: Parser Term
-piszero = do
-  _ <- P.string "iszero"
-  P.spaces
-  t <- pterm
-  return $ IsZero t
-
-pif :: Parser Term
-pif = do
-  _ <- P.string "if"
-  P.spaces
-  t1 <- pterm
-  P.spaces
-  _ <- P.string "then"
-  P.spaces
-  t2 <- pterm
-  P.spaces
-  _ <- P.string "else"
-  P.spaces
-  t3 <- pterm
-  return $ If t1 t2 t3
-
-pabs :: Parser Term
-pabs = do
-  _ <- P.oneOf ['λ', '\\']
-  P.spaces
-  x <- pvar
-  P.spaces
-  _ <- P.char '.'
-  P.spaces
-  t <- pterm
-  return $ Abs x t
-
-papp :: Parser Term
-papp = do
-  t1 <- pterm
-  P.spaces
-  t2 <- pterm
-  return $ App t1 t2
-
-plet :: Parser Term
-plet = do
-  _ <- P.string "let"
-  P.spaces
-  x <- pvar
-  P.spaces
-  _ <- P.char '='
-  P.spaces
-  t1 <- pterm
-  P.spaces
-  _ <- P.string "in"
-  P.spaces
-  t2 <- pterm
-  return $ Let x t1 t2
-
---main :: IO ()
---main = do
---  script <- getContent
---  let result = do
---    term <- parse pterm "recon" script
---    recon

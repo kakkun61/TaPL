@@ -10,6 +10,8 @@ executable recon
   main-is:          src/Main.hs
   build-depends:    base
                   , tapl-recon
+                  , containers
+                  , text
   default-language: Haskell2010
   ghc-options:      -Wall
 
@@ -18,6 +20,7 @@ library
   exposed-modules:      Recon
                       , Recon.Recon
                       , Recon.Parse
+                      , Recon.Type
   build-depends:        base
                       , containers
                       , mtl
