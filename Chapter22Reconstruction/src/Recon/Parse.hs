@@ -129,3 +129,7 @@ plet = do
   P.spaces
   t2 <- pterm
   return $ Let x t1 t2
+
+pdelimiter :: Parser ()
+pdelimiter = do
+  P.lookAhead (P.char '(' >> return ()) <|> P.skipMany1 P.space
