@@ -1,4 +1,4 @@
-module Recon.Parse {-(parse)-} where
+module Recon.Parse (parse) where
 
 import Recon.Type
 
@@ -13,7 +13,7 @@ parse s = P.parse (pterm >>= \t -> P.eof >> return t) "recon" s
 
 pterm :: Parser Term
 pterm =
-  P.try (P.chainl1 pterma $ pdelimiter >> return App) <|> pterma
+  P.try (P.chainl1 pterma $ pspaces1 >> return App) <|> pterma
 
 pterma :: Parser Term
 pterma =
@@ -27,7 +27,7 @@ pterma =
                        , pif
                        , pabs
                        , plet
-                       , P.between (P.char '(') (P.lookAhead $ P.char ')') pterm
+                       , P.between (P.char '(') (P.char ')') pterm
                        ]
 
 pvar :: Parser ValueVarName
@@ -64,67 +64,65 @@ pfalse = do
 psucc :: Parser Term
 psucc = do
   _ <- P.string "succ"
-  pdelimiter
+  pspaces1
   t <- pterm
   return $ Succ t
 
 ppred :: Parser Term
 ppred = do
   _ <- P.string "pred"
-  pdelimiter
+  pspaces1
   t <- pterm
   return $ Pred t
 
 piszero :: Parser Term
 piszero = do
   _ <- P.string "iszero"
-  pdelimiter
+  pspaces1
   t <- pterm
   return $ IsZero t
 
 pif :: Parser Term
 pif = do
   _ <- P.string "if"
-  pdelimiter
+  pspaces1
   t1 <- pterm
-  pdelimiter
+  pspaces1
   _ <- P.string "then"
-  pdelimiter
+  pspaces1
   t2 <- pterm
-  pdelimiter
+  pspaces1
   _ <- P.string "else"
-  pdelimiter
+  pspaces1
   t3 <- pterm
   return $ If t1 t2 t3
 
 pabs :: Parser Term
 pabs = do
   _ <- P.oneOf ['λ', '\\']
-  pdelimiter
+  P.spaces
   x <- pvar
-  pdelimiter
+  P.spaces
   _ <- P.char '.'
-  pdelimiter
+  P.spaces
   t <- pterm
   return $ Abs x t
 
 plet :: Parser Term
 plet = do
   _ <- P.string "let"
-  pdelimiter
+  pspaces1
   x <- pvar
-  pdelimiter
+  P.spaces
   _ <- P.char '='
-  pdelimiter
+  P.spaces
   t1 <- pterm
-  pdelimiter
+  pspaces1
   _ <- P.string "in"
-  pdelimiter
+  pspaces1
   t2 <- pterm
   return $ Let x t1 t2
 
-pdelimiter :: Parser ()
-pdelimiter = do
-  P.try $ P.lookAhead (P.char '(' >> return ())
-  <|> P.try (P.char ')' >> P.spaces)
-  <|> P.skipMany1 P.space
+pspaces1 :: Parser ()
+pspaces1 =
+  P.skipMany1 P.space

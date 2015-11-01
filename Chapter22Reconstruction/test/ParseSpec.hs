@@ -50,9 +50,9 @@ spec = do
           term   = Succ Zero
         parse script `shouldBe` Right term
 
-      it "succ(zero)" $ do
+      it "succ (zero)" $ do
         let
-          script = "succ(zero)"
+          script = "succ (zero)"
           term   = Succ Zero
         parse script `shouldBe` Right term
 
@@ -130,20 +130,21 @@ spec = do
           term   = App TTrue TTrue
         parse script `shouldBe` Right term
 
-      it "(true)true" $ do
-        let
-          script = "(true)true"
-          term   = App TTrue TTrue
-        parse script `shouldBe` Right term
-
       it "(true) true" $ do
         let
           script = "(true) true"
           term   = App TTrue TTrue
         parse script `shouldBe` Right term
 
+    describe "failure" $ do
+      it "(true)true" $ do
+        let
+          script = "(true)true"
+          term   = App TTrue TTrue
+        parse script `shouldSatisfy` isLeft
+
       it "true(true)" $ do
         let
           script = "true(true)"
           term   = App TTrue TTrue
-        parse script `shouldBe` Right term
+        parse script `shouldSatisfy` isLeft
