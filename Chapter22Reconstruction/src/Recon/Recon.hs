@@ -83,8 +83,13 @@ genTypeVarName = state genTypeVarName'
     genTypeVarName' (TypeVarNameSeed s@(TypeVarName n)) = (s, TypeVarNameSeed (TypeVarName(succ n)))
 
 -- TODO implement correctly. temporary implimentation.
-calcTypeVarNameSeed :: Context -> Term -> TypeVarNameSeed
-calcTypeVarNameSeed ctx term = TypeVarNameSeed $ TypeVarName 0
+calcTypeVarNameSeed :: Context -> TypeVarNameSeed
+calcTypeVarNameSeed (Context ctx) =
+  let
+    typs = M.elems ctx
+    maxVar = undefined
+  in
+    TypeVarNameSeed $ TypeVarName $ maxVar + 1
 
 ctype :: Context -> Term -> ExceptT String (State TypeVarNameSeed) (Type, Set Constraint)
 ctype (Context ctx) term@(Var x) = do -- CT-Var
