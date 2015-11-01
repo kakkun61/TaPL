@@ -1,4 +1,4 @@
-module Recon.Parse (parse) where
+module Recon.Parse {-(parse)-} where
 
 import Recon.Type
 
@@ -9,11 +9,11 @@ import Data.Text (Text)
 type Parser = Parsec Text ()
 
 parse :: Text -> Either ParseError Term
-parse s = P.parse pterm "recon" s
+parse s = P.parse (pterm >>= \t -> P.eof >> return t) "recon" s
 
 pterm :: Parser Term
 pterm =
-  P.try (P.chainl1 pterma $ P.spaces >> return App) <|> pterma
+  P.try (P.chainl1 pterma $ pdelimiter >> return App) <|> pterma
 
 pterma :: Parser Term
 pterma =
@@ -27,7 +27,7 @@ pterma =
                        , pif
                        , pabs
                        , plet
-                       , P.between (P.char '(') (P.char ')') pterm
+                       , P.between (P.char '(') (P.lookAhead $ P.char ')') pterm
                        ]
 
 pvar :: Parser ValueVarName
@@ -64,72 +64,67 @@ pfalse = do
 psucc :: Parser Term
 psucc = do
   _ <- P.string "succ"
-  P.spaces
+  pdelimiter
   t <- pterm
   return $ Succ t
 
 ppred :: Parser Term
 ppred = do
   _ <- P.string "pred"
-  P.spaces
+  pdelimiter
   t <- pterm
   return $ Pred t
 
 piszero :: Parser Term
 piszero = do
   _ <- P.string "iszero"
-  P.spaces
+  pdelimiter
   t <- pterm
   return $ IsZero t
 
 pif :: Parser Term
 pif = do
   _ <- P.string "if"
-  P.spaces
+  pdelimiter
   t1 <- pterm
-  P.spaces
+  pdelimiter
   _ <- P.string "then"
-  P.spaces
+  pdelimiter
   t2 <- pterm
-  P.spaces
+  pdelimiter
   _ <- P.string "else"
-  P.spaces
+  pdelimiter
   t3 <- pterm
   return $ If t1 t2 t3
 
 pabs :: Parser Term
 pabs = do
   _ <- P.oneOf ['λ', '\\']
-  P.spaces
+  pdelimiter
   x <- pvar
-  P.spaces
+  pdelimiter
   _ <- P.char '.'
-  P.spaces
+  pdelimiter
   t <- pterm
   return $ Abs x t
-
-papp :: Parser Term
-papp = do
-  t1 <- pterm
-  P.spaces
-  t2 <- pterm
-  return $ App t1 t2
 
 plet :: Parser Term
 plet = do
   _ <- P.string "let"
-  P.spaces
+  pdelimiter
   x <- pvar
-  P.spaces
+  pdelimiter
   _ <- P.char '='
-  P.spaces
+  pdelimiter
   t1 <- pterm
-  P.spaces
+  pdelimiter
   _ <- P.string "in"
-  P.spaces
+  pdelimiter
   t2 <- pterm
   return $ Let x t1 t2
 
 pdelimiter :: Parser ()
 pdelimiter = do
-  P.lookAhead (P.char '(' >> return ()) <|> P.skipMany1 P.space
+  P.try $ P.lookAhead (P.char '(' >> return ())
+  <|> P.try (P.char ')' >> P.spaces)
+  <|> P.skipMany1 P.space

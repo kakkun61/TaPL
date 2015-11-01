@@ -6,6 +6,8 @@ import Test.Hspec
 import Recon.Type
 import Recon.Parse
 
+import Data.Either
+
 spec :: Spec
 spec = do
   describe "var" $ do
@@ -48,6 +50,18 @@ spec = do
           term   = Succ Zero
         parse script `shouldBe` Right term
 
+      it "succ(zero)" $ do
+        let
+          script = "succ(zero)"
+          term   = Succ Zero
+        parse script `shouldBe` Right term
+
+    describe "failure" $ do
+      it "succzero" $ do
+        let
+          script = "succzero"
+        parse script `shouldSatisfy` isLeft
+
   describe "pred" $ do
     describe "success" $ do
       it "pred zero" $ do
@@ -80,11 +94,23 @@ spec = do
           term   = Abs (ValueVarName 0) TTrue
         parse script `shouldBe` Right term
 
+      it "λ 0 . true" $ do
+        let
+          script = "λ 0 . true"
+          term   = Abs (ValueVarName 0) TTrue
+        parse script `shouldBe` Right term
+
   describe "let" $ do
     describe "success" $ do
       it "let 0 = true in true" $ do
         let
           script = "let 0 = true in true"
+          term   = Let (ValueVarName 0) TTrue TTrue
+        parse script `shouldBe` Right term
+
+      it "let 0=true in true" $ do
+        let
+          script = "let 0=true in true"
           term   = Let (ValueVarName 0) TTrue TTrue
         parse script `shouldBe` Right term
 
@@ -101,5 +127,23 @@ spec = do
       it "true true" $ do
         let
           script = "true true"
+          term   = App TTrue TTrue
+        parse script `shouldBe` Right term
+
+      it "(true)true" $ do
+        let
+          script = "(true)true"
+          term   = App TTrue TTrue
+        parse script `shouldBe` Right term
+
+      it "(true) true" $ do
+        let
+          script = "(true) true"
+          term   = App TTrue TTrue
+        parse script `shouldBe` Right term
+
+      it "true(true)" $ do
+        let
+          script = "true(true)"
           term   = App TTrue TTrue
         parse script `shouldBe` Right term

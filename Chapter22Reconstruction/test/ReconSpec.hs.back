@@ -3,7 +3,8 @@
 module ReconSpec where
 
 import Test.Hspec
-import Recon
+import Recon.Type
+import Recon.Recon
 import qualified Data.Set as S
 import qualified Data.Map.Strict as M
 import Control.Monad.State
@@ -382,100 +383,3 @@ spec = do
           term = Abs (ValueVarName 0) (Var $ ValueVarName 1)
           seed = TypeVarNameSeed $ TypeVarName 0
         prinso ctx term seed `shouldSatisfy` isLeft
-
-  describe "parser" $ do
-    describe "var" $ do
-      describe "success" $ do
-        it "0" $ do
-          let
-            script = "0"
-            term   = Var (ValueVarName 0)
-          parse pterm "test var" script `shouldBe` Right term
-
-    describe "zero" $ do
-      describe "success" $ do
-        it "zero" $ do
-          let
-            script = "zero"
-            term   = Zero
-          parse pterm "test zero" script `shouldBe` Right term
-
-    describe "true" $ do
-      describe "success" $ do
-        it "true" $ do
-          let
-            script = "true"
-            term   = TTrue
-          parse pterm "test true" script `shouldBe` Right term
-
-    describe "false" $ do
-      describe "success" $ do
-        it "false" $ do
-          let
-            script = "false"
-            term   = TFalse
-          parse pterm "test false" script `shouldBe` Right term
-
-    describe "succ" $ do
-      describe "success" $ do
-        it "succ zero" $ do
-          let
-            script = "succ zero"
-            term   = Succ Zero
-          parse pterm "test succ" script `shouldBe` Right term
-
-    describe "pred" $ do
-      describe "success" $ do
-        it "pred zero" $ do
-          let
-            script = "pred zero"
-            term   = Pred Zero
-          parse pterm "test pred" script `shouldBe` Right term
-
-    describe "iszero" $ do
-      describe "success" $ do
-        it "iszero zero" $ do
-          let
-            script = "iszero zero"
-            term   = IsZero Zero
-          parse pterm "test iszero" script `shouldBe` Right term
-
-    describe "if" $ do
-      describe "success" $ do
-        it "if true then true else true" $ do
-          let
-            script = "if true then true else true"
-            term   = If TTrue TTrue TTrue
-          parse pterm "test if" script `shouldBe` Right term
-
-    describe "abs" $ do
-      describe "success" $ do
-        it "λ0. true" $ do
-          let
-            script = "λ0. true"
-            term   = Abs (ValueVarName 0) TTrue
-          parse pterm "test abs" script `shouldBe` Right term
-
-    describe "let" $ do
-      describe "success" $ do
-        it "let 0 = true in true" $ do
-          let
-            script = "let 0 = true in true"
-            term   = Let (ValueVarName 0) TTrue TTrue
-          parse pterm "test let" script `shouldBe` Right term
-
-    describe "paren" $ do
-      describe "success" $ do
-        it "(true)" $ do
-          let
-            script = "(true)"
-            term   = TTrue
-          parse pterm "test paren" script `shouldBe` Right term
-
-    describe "app" $ do
-      describe "success" $ do
-        it "true true" $ do
-          let
-            script = "true true"
-            term   = App TTrue TTrue
-          parse pterm "test app" script `shouldBe` Right term
