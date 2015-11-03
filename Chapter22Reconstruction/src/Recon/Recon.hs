@@ -7,6 +7,7 @@ module Recon.Recon ( Constraint (..)
                    , prinso
                    , prinso'
                    , calcTypeVarNameSeed
+                   , fv
                    ) where
 
 import Recon.Type
@@ -18,6 +19,7 @@ import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Data.Foldable
 import Control.Monad.Trans.Except
+import Safe
 
 data Constraint = Constraint Type Type
   deriving (Eq, Ord, Show)
@@ -85,9 +87,12 @@ genTypeVarName = state genTypeVarName'
 calcTypeVarNameSeed :: Context -> TypeVarNameSeed
 calcTypeVarNameSeed (Context ctx) =
   let
-    maxVar = case map (S.size . fv) $ M.elems ctx of
+    maxVar = case map (headDef (-1) . map val . S.toDescList . fv) $ M.elems ctx of
                [] -> -1
                a -> maximum a
+             where
+               val (TypeVarName v) = v
+
   in
     TypeVarNameSeed $ TypeVarName $ maxVar + 1
 
