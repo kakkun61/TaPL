@@ -140,11 +140,9 @@ spec = do
       it "(true)true" $ do
         let
           script = "(true)true"
-          term   = App TTrue TTrue
         parse script `shouldSatisfy` isLeft
 
       it "true(true)" $ do
         let
           script = "true(true)"
-          term   = App TTrue TTrue
         parse script `shouldSatisfy` isLeft

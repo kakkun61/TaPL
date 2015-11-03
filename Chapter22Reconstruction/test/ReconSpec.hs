@@ -10,7 +10,6 @@ import qualified Data.Map.Strict as M
 import Control.Monad.State
 import Control.Monad.Trans.Except
 import Data.Either
-import Text.Parsec
 
 spec :: Spec
 spec = do
@@ -358,12 +357,10 @@ spec = do
         let
           ctx  = Context $ M.empty
           term = Var $ ValueVarName 0
-          seed = calcTypeVarNameSeed ctx
         prinso ctx term `shouldSatisfy` isLeft
 
       it "∅ ⊦ λx. y ⇒ fail" $ do
         let
           ctx  = Context $ M.empty
           term = Abs (ValueVarName 0) (Var $ ValueVarName 1)
-          seed = calcTypeVarNameSeed ctx
         prinso ctx term `shouldSatisfy` isLeft
