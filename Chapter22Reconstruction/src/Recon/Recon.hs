@@ -82,12 +82,12 @@ genTypeVarName = state genTypeVarName'
     genTypeVarName' :: TypeVarNameSeed -> (TypeVarName, TypeVarNameSeed)
     genTypeVarName' (TypeVarNameSeed s@(TypeVarName n)) = (s, TypeVarNameSeed (TypeVarName(succ n)))
 
--- TODO implement correctly. temporary implimentation.
 calcTypeVarNameSeed :: Context -> TypeVarNameSeed
 calcTypeVarNameSeed (Context ctx) =
   let
-    typs = M.elems ctx
-    maxVar = undefined
+    maxVar = case map (S.size . fv) $ M.elems ctx of
+               [] -> -1
+               a -> maximum a
   in
     TypeVarNameSeed $ TypeVarName $ maxVar + 1
 
@@ -153,7 +153,7 @@ ctype ctx@(Context mctx) (Let x t1 t2) = do -- CT-LetPoly'
 -- | 主要解 principal solution
 prinso :: Context -> Term -> Either String ([Assign], Type)
 prinso ctx term =
-  case evalState (runExceptT $ ctype ctx term) (calcTypeVarNameSeed ctx term) of
+  case evalState (runExceptT $ ctype ctx term) (calcTypeVarNameSeed ctx) of
     Right (typ, cons) -> prinso' typ cons
     Left s -> Left s
 
