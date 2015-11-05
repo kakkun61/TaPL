@@ -9,7 +9,15 @@ import Data.Text (Text)
 type Parser = Parsec Text ()
 
 parse :: Text -> Either ParseError Term
-parse s = P.parse (pterm >>= \t -> P.eof >> return t) "recon" s
+parse s =
+  P.parse go "recon" s
+  where
+    go = do
+      P.spaces
+      t <- pterm
+      P.spaces
+      P.eof
+      return t
 
 pterm :: Parser Term
 pterm =
