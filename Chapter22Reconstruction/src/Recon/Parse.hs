@@ -22,7 +22,7 @@ parse s =
 
 pterm :: Parser Term
 pterm = traceP "pterm" $
-  P.try (P.chainl1 pterma $ pspaces1 >> return App) <|> pterma
+  P.chainl1 pterma $ P.try $ pspaces1 >> P.lookAhead pterma >> return App
 
 pterma :: Parser Term
 pterma = traceP "pterma" $ do
