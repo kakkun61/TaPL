@@ -5,12 +5,13 @@ import Recon.Type
 import Text.Parsec (Parsec, ParseError, (<|>))
 import qualified Text.Parsec as P
 import Data.Text (Text)
+import Debug.Trace (traceM)
 
-type Parser = Parsec Text ()
+type Parser = Parsec Text Int
 
 parse :: Text -> Either ParseError Term
 parse s =
-  P.parse go "recon" s
+  P.runParser go 0 "recon" s
   where
     go = do
       P.spaces
@@ -20,11 +21,11 @@ parse s =
       return t
 
 pterm :: Parser Term
-pterm =
+pterm = traceP "pterm" $
   P.try (P.chainl1 pterma $ pspaces1 >> return App) <|> pterma
 
 pterma :: Parser Term
-pterma =
+pterma = traceP "pterma" $ do
   P.choice $ map P.try [ pvart
                        , pzero
                        , ptrue
@@ -39,7 +40,7 @@ pterma =
                        ]
 
 pvar :: Parser ValueVarName
-pvar = do
+pvar = traceP "pvar" $ do
   fmap (ValueVarName . read) $
     P.try $ do
       h <- P.oneOf ['1' .. '9']
@@ -50,48 +51,48 @@ pvar = do
       return [z]
 
 pvart :: Parser Term
-pvart = do
+pvart = traceP "pvart" $ do
   x <- pvar
   return $ Var x
 
 pzero :: Parser Term
-pzero = do
+pzero = traceP "pzero" $ do
   _ <- P.string "zero"
   return Zero
 
 ptrue :: Parser Term
-ptrue = do
+ptrue = traceP "ptrue" $ do
   _ <- P.string "true"
   return TTrue
 
 pfalse :: Parser Term
-pfalse = do
+pfalse = traceP "pfalse" $ do
   _ <- P.string "false"
   return TFalse
 
 psucc :: Parser Term
-psucc = do
+psucc = traceP "psucc" $ do
   _ <- P.string "succ"
   pspaces1
   t <- pterm
   return $ Succ t
 
 ppred :: Parser Term
-ppred = do
+ppred = traceP "ppred" $ do
   _ <- P.string "pred"
   pspaces1
   t <- pterm
   return $ Pred t
 
 piszero :: Parser Term
-piszero = do
+piszero = traceP "piszero" $ do
   _ <- P.string "iszero"
   pspaces1
   t <- pterm
   return $ IsZero t
 
 pif :: Parser Term
-pif = do
+pif = traceP "pif" $ do
   _ <- P.string "if"
   pspaces1
   t1 <- pterm
@@ -106,7 +107,7 @@ pif = do
   return $ If t1 t2 t3
 
 pabs :: Parser Term
-pabs = do
+pabs = traceP "pabs" $ do
   _ <- P.oneOf ['λ', '\\']
   P.spaces
   x <- pvar
@@ -117,7 +118,7 @@ pabs = do
   return $ Abs x t
 
 plet :: Parser Term
-plet = do
+plet = traceP "plet" $ do
   _ <- P.string "let"
   pspaces1
   x <- pvar
@@ -134,3 +135,15 @@ plet = do
 pspaces1 :: Parser ()
 pspaces1 =
   P.skipMany1 P.space
+
+traceP :: String -> Parser a -> Parser a
+traceP tag parser = do
+  parserState <- P.getParserState
+  let
+    input = P.stateInput parserState
+    depth = P.stateUser parserState
+  traceM $ (replicate depth ' ') ++ tag ++ ": " ++ (show input)
+  _ <- P.setParserState $ parserState { P.stateUser = depth + 1 }
+  a <- parser
+  _ <- P.updateParserState $ \s -> s { P.stateUser = depth }
+  return a
