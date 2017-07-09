@@ -8,6 +8,19 @@ import Data.Text (Text)
 
 type Parser = Parsec Text ()
 
+keywordIf   = "if"
+keywordThen = "then"
+keywordElse = "else"
+keywordLet  = "let"
+keywordIn   = "in"
+
+keywords = [ keywordIf
+           , keywordThen
+           , keywordElse
+           , keywordLet
+           , keywordIn
+           ]
+
 parse :: Text -> Either ParseError Term
 parse s =
   P.parse go "recon" s
@@ -92,15 +105,15 @@ piszero = do
 
 pif :: Parser Term
 pif = do
-  _ <- P.string "if"
+  _ <- P.string keywordIf
   pspaces1
   t1 <- pterm
   pspaces1
-  _ <- P.string "then"
+  _ <- P.string keywordThen
   pspaces1
   t2 <- pterm
   pspaces1
-  _ <- P.string "else"
+  _ <- P.string keywordElse
   pspaces1
   t3 <- pterm
   return $ If t1 t2 t3
@@ -118,7 +131,7 @@ pabs = do
 
 plet :: Parser Term
 plet = do
-  _ <- P.string "let"
+  _ <- P.string keywordLet
   pspaces1
   x <- pvar
   P.spaces
@@ -126,7 +139,7 @@ plet = do
   P.spaces
   t1 <- pterm
   pspaces1
-  _ <- P.string "in"
+  _ <- P.string keywordIn
   pspaces1
   t2 <- pterm
   return $ Let x t1 t2
