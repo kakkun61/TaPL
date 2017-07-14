@@ -13,6 +13,7 @@ keywordThen = "then"
 keywordElse = "else"
 keywordLet  = "let"
 keywordIn   = "in"
+keywordZero = "zero"
 
 keywords = [ keywordIf
            , keywordThen
