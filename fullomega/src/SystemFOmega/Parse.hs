@@ -8,20 +8,6 @@ import Data.Text (Text)
 
 type Parser = Parsec Text ()
 
-keywordIf   = "if"
-keywordThen = "then"
-keywordElse = "else"
-keywordLet  = "let"
-keywordIn   = "in"
-keywordZero = "zero"
-
-keywords = [ keywordIf
-           , keywordThen
-           , keywordElse
-           , keywordLet
-           , keywordIn
-           ]
-
 parse :: Text -> Either ParseError Term
 parse s =
   P.parse go "recon" s
@@ -40,13 +26,6 @@ pterm =
 pterma :: Parser Term
 pterma =
   P.choice $ map P.try [ pvart
-                       , pzero
-                       , ptrue
-                       , pfalse
-                       , psucc
-                       , ppred
-                       , piszero
-                       , pif
                        , pabs
                        , plet
                        , P.between (P.char '(') (P.char ')') pterm

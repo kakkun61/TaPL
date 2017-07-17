@@ -15,18 +15,18 @@ newtype ValueVarName = ValueVarName Text
 newtype TypeVarName = TypeVarName Text
   deriving (Eq, Ord, Show)
 
-data Term = Var ValueVarName
-          | Abs ValueVarName Type Term
-          | App Term Term
-          | TypeAbs TypeVarName Kind Term
-          | TypeApp Term Type
+data Term = Var ValueVarName              -- x
+          | Abs ValueVarName Type Term    -- λx:T. t
+          | App Term Term                 -- t t
+          | TypeAbs TypeVarName Kind Term -- λT:K. t
+          | TypeApp Term Type             -- t[T]
           deriving (Eq, Show)
 
-data Type = TypeVar TypeVarName
-          | All TypeVarName Kind Type
-          | TypeOppAbs TypeVarName Kind Type
-          | TypeOppApp Type Type
-          | Arrow Type Type
+data Type = TypeVar TypeVarName              -- X
+          | All TypeVarName Kind Type        -- ∀X:K. T
+          | TypeOppAbs TypeVarName Kind Type -- λX:K. T
+          | TypeOppApp Type Type             -- T T
+          | Arrow Type Type                  -- T→T
           deriving (Eq, Show)
 
 data Bind = ValueVarBind ValueVarName Type
