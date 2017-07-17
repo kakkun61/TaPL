@@ -18,11 +18,14 @@ newtype TypeVarName = TypeVarName Text
 data Term = Var ValueVarName
           | Abs ValueVarName Type Term
           | App Term Term
+          | TypeAbs TypeVarName Kind Term
+          | TypeApp Term Type
           deriving (Eq, Show)
 
 data Type = TypeVar TypeVarName
-          | TypeAbs TypeVarName Kind Type
-          | TypeApp Type Type
+          | All TypeVarName Kind Type
+          | TypeOppAbs TypeVarName Kind Type
+          | TypeOppApp Type Type
           | Arrow Type Type
           deriving (Eq, Show)
 
@@ -33,5 +36,5 @@ data Bind = ValueVarBind ValueVarName Type
 type Context = [Bind]
 
 data Kind = AtomKind
-          | ArrowKind Kind Kind
+          | OppKind Kind Kind
           deriving (Eq, Show)
