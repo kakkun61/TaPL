@@ -2,36 +2,36 @@ module SystemFOmega.Type ( ValueVarName (..)
                          , TypeVarName (..)
                          , Term (..)
                          , Type (..)
-                         , Context (..)
+                         , Bind (..)
+                         , Context
+                         , Kind
                          ) where
 
-import Data.Set (Set)
-import Data.Map.Strict (Map)
+import Data.Text
 
-newtype ValueVarName = ValueVarName Int
+newtype ValueVarName = ValueVarName Text
   deriving (Eq, Ord, Show)
-newtype TypeVarName = TypeVarName Int
+
+newtype TypeVarName = TypeVarName Text
   deriving (Eq, Ord, Show)
 
 data Term = Var ValueVarName
-          | Zero
-          | TTrue
-          | TFalse
-          | Succ Term
-          | Pred Term
-          | IsZero Term
-          | If Term Term Term
-          | Abs ValueVarName Term
+          | Abs ValueVarName Type Term
           | App Term Term
-          | Let ValueVarName Term Term
           deriving (Eq, Show)
 
 data Type = TypeVar TypeVarName
-          | Nat
-          | TBool
+          | TypeAbs TypeVarName Kind Type
+          | TypeApp Type Type
           | Arrow Type Type
-          | Scheme (Set TypeVarName) Type
-          deriving (Eq, Ord, Show)
+          deriving (Eq, Show)
 
-newtype Context = Context (Map ValueVarName Type)
-  deriving (Show)
+data Bind = ValueVarBind ValueVarName Type
+          | TypeVarBind TypeVarName Kind
+          deriving (Eq, Show)
+
+type Context = [Bind]
+
+data Kind = AtomKind
+          | ArrowKind Kind Kind
+          deriving (Eq, Show)
