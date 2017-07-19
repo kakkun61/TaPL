@@ -58,3 +58,8 @@ com_crashlytics_export_strings.xml
 crashlytics.properties
 crashlytics-build.properties
 
+### https://raw.github.com/github/gitignore/df38222a85264028362b7487b90992fb7cf8fbc4/agda.gitignore
+
+*.agdai
+
+
