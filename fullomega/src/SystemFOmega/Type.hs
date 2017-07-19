@@ -7,12 +7,10 @@ module SystemFOmega.Type ( ValueVarName (..)
                          , Kind
                          ) where
 
-import Data.Text
-
-newtype ValueVarName = ValueVarName Text
+newtype ValueVarName = ValueVarName Int
   deriving (Eq, Ord, Show)
 
-newtype TypeVarName = TypeVarName Text
+newtype TypeVarName = TypeVarName Int
   deriving (Eq, Ord, Show)
 
 data Term = Var ValueVarName              -- x
