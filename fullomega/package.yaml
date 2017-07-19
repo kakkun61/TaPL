@@ -1,0 +1,27 @@
+name: fullomega
+version: '0.1.0.0'
+author: Kazuki Okamoto
+maintainer: kazuki.okamoto@kakkun61.com
+license: UnspecifiedLicense
+dependencies:
+- base
+- containers
+- text
+library:
+  source-dirs: src
+  ghc-options: -Wall
+  exposed-modules:
+  - SystemFOmega
+  - SystemFOmega.Parse
+  - SystemFOmega.Type
+  dependencies:
+  - mtl
+  - transformers
+  - parsec
+  - safe
+executables:
+  fullomega:
+    main: src/Main.hs
+    ghc-options: -Wall
+    dependencies:
+    - fullomega
