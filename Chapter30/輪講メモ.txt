@@ -1,0 +1,30 @@
+第29章 型演算子とカインド
+
+カインドの説明と λω の定義
+
+第30章 高階多相
+
+System Fω
+
+PairSig = {∃Pair:*⇒*⇒*,
+           {pair: ∀X. ∀Y. X→Y→(Pair X Y),
+            fst: ∀X. ∀Y. (Pair X Y)→X, snd: ∀X. ∀Y. (Pair X Y)→Y}};
+
+pairADT =
+  {*λX. λY. ∀R. (X→Y→R) → R,
+   {pair = λX. λY. λx:X. λy:Y. λR. λp:X→Y→R. p x y,
+    fst = λX. λY. λp: ∀R. (X→Y→R) → R. p [X] (λx:X. λy:Y. x),
+    snd = λX. λY. λp: ∀R. (X→Y→R) → R. p [Y] (λx:X. λy:Y. y)}}
+  as PairSig;
+
+Haskell 全称量化子を使った存在量化された型
+https://ja.wikibooks.org/wiki/Haskell/%E5%AD%98%E5%9C%A8%E9%87%8F%E5%8C%96%E3%81%95%E3%82%8C%E3%81%9F%E5%9E%8B
+newtype Pair a b = Pair (forall c. (a -> b -> c) -> c)
+
+30.5節 依存型
+
+List.agda
+
+第31章 事例：純粋関数的オブジェクト
+
+object.f
