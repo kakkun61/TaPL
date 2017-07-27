@@ -25,6 +25,12 @@ newtype Pair a b = Pair (forall c. (a -> b -> c) -> c)
 
 List.agda
 
-第31章 事例：純粋関数的オブジェクト
+第31章 高階部分型付け
+
+F ω <:
+
+fomsub
+
+第32章 事例：純粋関数的オブジェクト
 
 object.f
